@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 #assign a the file name and location if applicable to a variable
-myurls = "http-moonpay.txt"
+myurls = input("Enter your url text file path:")
 #create the request variable
 #set headers to send with get request
 HEADERS = {'user-agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5)'
