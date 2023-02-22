@@ -34,13 +34,57 @@ def checkparams(url, file, tag1):
         pass
 
 #create a function to send a request to a single URL
-def oneurl(url):
-    #check to see if the URL is in the correct format
-    if (url[:7] != "http://") or (url[:8] != "https://"):
-        print("Please make sure your URL includes protocol: http/https. Exiting.")
-        SystemExit(1)
-    else:
-        print("URL is correct.")
+def getrequest(url):
+    #delete next line after testing
+    print(url, " made it to getrequest!")
+    #send a request and save it in myrequest
+    try:
+        #create a file name removing any special characters
+        resultsfile = url.replace(".", "")
+        resultsfile = resultsfile.replace(":", "")
+        resultsfile = resultsfile.replace("/", "")
+        resultsfile = resultsfile + ".html"
+        #send the get request and assign it to myrequest
+        myrequest = requests.get(url, HEADERS1)
+        #check the server response code
+        if (myrequest.status_code == 200):
+            f = open(resultsfile, "w")
+            f.write(myrequest.text)
+            f.close()
+            #make a request to parse the html tags
+            print("Sending to parser..")
+            parsehtml(resultsfile)
+        elif (myrequest.status_code == 500):
+            print("Server error code: ", myrequest.status_code)
+    except:
+        print("Error during send request for URL: ", url)
+
+#function to search html files for tags and attributes
+def parsehtml(htmlfile):
+    print("Made it to html parser!")
+    with open(htmlfile, "r") as fp:
+        soup = BeautifulSoup(fp, "html.parser")
+        links = soup.find_all(tag1)
+        #check if links has data
+        if links:
+            print("Links is good in html parser.")
+            #create a new file name to contain results after parsing html
+            parsedresults = htmlfile.replace(".", "")
+            parsedresults = parsedresults + ".csv"
+            fname = open(parsedresults, "w")
+            print("After opening file parsedresults")
+            fname.write("Results from file: " + htmlfile + "\n")
+            for each_tag in links:
+                print("Entered loop in parser")
+                #write the results to the new file
+                fname.write(str(each_tag) + "\n")
+                #delete next line after completion
+                print(each_tag)
+            fp.close()
+            fname.close()
+        else:
+            print("That tag doesn't exist in: ", htmlfile)
+
 
 #check to see if we will be scanning for a single URL or a file or URLs
 def validurl(url):
@@ -50,21 +94,30 @@ def validurl(url):
     if url:
         if (https == 'https'):
             #delete next line after testing
-            print("Protocol detected is: ", https)
+            #print("Protocol detected is: ", https)
             return True
         elif (http == 'http'):
             #delete next line after testing
-            print("Protocol detected is: ", http)
+            #print("Protocol detected is: ", http)
             return True
         else:
-            print("Please check your protocol is included and correct: http/https. Exiting.")
+            #print("Please check your protocol is included and correct: http/https. Exiting.")
             return False
-            SystemExit(1)
     else:
         print("No valid url detected during validurl() check. Exiting.")
         SystemExit(1)
 
-#check if a file submitted is correctly formatted
+#function to call for one url submitted
+def oneurl(url):
+    #send it to the valid url checker
+    if validurl(url):
+        #send it to get a request
+        getrequest(url)
+    else:
+        print("URL not valid. Exiting.")
+        SystemExit(1)
+
+#check if a file submitted is correctly formatted and if so make the request, if not let the user know which item will not work
 def validfile(file):
     #try to open the file to make sure it is valid
     try:
@@ -77,8 +130,9 @@ def validfile(file):
                 #send the url to be checked for protocol
                 if validurl(cleanurl):
                     #if the return value is true send it getrequest
-                    print("URL: ", cleanurl, " is valid.")
-                    #if it isn't valid, let the user know which URL isn't valid
+                    #print("URL: ", cleanurl, " is valid.")
+                    getrequest(cleanurl)
+                #if it isn't valid, let the user know which URL isn't valid
                 else:
                     print("Please check your file for URL: ", cleanurl, " as it appears to not be valid.")
     except:
@@ -131,7 +185,7 @@ def getstarted():
     checkparams(url, file, tag1)
     if url:
         #do something
-        validurl(url)
+        oneurl(url)
     elif file:
         #do something else
         validfile(file)
