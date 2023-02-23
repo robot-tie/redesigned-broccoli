@@ -49,6 +49,7 @@ def getrequest(url):
         #check the server response code
         if (myrequest.status_code == 200):
             f = open(resultsfile, "w")
+            f.write(url)
             f.write(myrequest.text)
             f.close()
             #make a request to parse the html tags
@@ -56,6 +57,11 @@ def getrequest(url):
             parsehtml(resultsfile)
         elif (myrequest.status_code == 500):
             print("Server error code: ", myrequest.status_code)
+        #handle other status codes
+        else:
+            print(myrequest.status_code)
+            print(myrequest.headers)
+            print(myrequest.text)
     except:
         print("Error during send request for URL: ", url)
 
