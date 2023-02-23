@@ -57,13 +57,6 @@ def filefinder(url):
                 print("FOUND")
             time.sleep(2)
         return ffiles
-            
-            
-#write found dirs to text
-def foundirs(url):
-    f = open(founddir, "a")
-    f.write(url)
-    f.close()
 
 #second request for dirs
 def getrequestd(newurl):
