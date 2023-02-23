@@ -15,15 +15,20 @@ parsedargs.add_argument('-f',   '--file',     help = "If you have a txt file wit
 parsedargs.add_argument('-t',   '--delay',    help = "If you are sending a request using your txt file, you may wish to include a time delay in seconds.")
 parsedargs.add_argument('-o',   '--output',   help = "Enter the name file you wish to have the results saved in.")
 parsedargs.add_argument('-t1',  '--tag1',     help = "Enter the name of the html tag you are most interested in finding.")
+parsedargs.add_argument('-w',   '--wordlist', help = "Enter the name of the html tag you are most interested in finding.")
 
 #collect argument values and assign to their local variable
-args    = parsedargs.parse_args()
-url     = args.url
-file    = args.file
-delay   = args.delay
-output  = args.output
-tag1    = args.tag1
+args        = parsedargs.parse_args()
+url         = args.url
+file        = args.file
+delay       = args.delay
+output      = args.output
+tag1        = args.tag1
+wlist       = args.wordlist
 
+#variables
+founddir    = "200s.txt"
+others      = "others.txt"
 #check to see if there is a url or file and html tag passed
 def checkparams(url, file, tag1):
     #check the value of url and file
@@ -32,7 +37,39 @@ def checkparams(url, file, tag1):
         SystemExit(1)
     else:
         pass
+#file finder function
+def filefinder(url):
+    print("Received from get request: ", url)
+    n = open(others, "a")
+    ffiles = ""
+    with open(wlist) as wl:
+        for item in wl:
+            cleanitem = item.replace("\n", "")
+            newurl = url + "/" + cleanitem
+            #getrequestd(cleanitem)
+            dirs = requests.get(newurl)
+            print(newurl)
+            print(dirs.status_code)
+            if dirs.status_code == 200:
+                ffiles += newurl
+                ffiles += "\n"
+                #founddir(newurl)
+                print("FOUND")
+            time.sleep(2)
+        return ffiles
+            
+            
+#write found dirs to text
+def foundirs(url):
+    f = open(founddir, "a")
+    f.write(url)
+    f.close()
 
+#second request for dirs
+def getrequestd(newurl):
+    print("grand")
+    dirs = requests.get(newurl)
+    print(dirs.status_code)
 #create a function to send a request to a single URL
 def getrequest(url):
     #delete next line after testing
@@ -48,6 +85,12 @@ def getrequest(url):
         myrequest = requests.get(url, HEADERS1)
         #check the server response code
         if (myrequest.status_code == 200):
+            filefinder(url)
+            dir = filefinder(url)
+            d = open(founddir, "a")
+            d.write(dir)
+            d.write("\n")
+            d.close()
             f = open(resultsfile, "w")
             f.write(url)
             f.write(myrequest.text)
@@ -55,6 +98,7 @@ def getrequest(url):
             #make a request to parse the html tags
             print("Sending to parser..")
             parsehtml(resultsfile)
+            
         elif (myrequest.status_code == 500):
             print("Server error code: ", myrequest.status_code)
         #handle other status codes
