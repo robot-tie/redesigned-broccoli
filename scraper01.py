@@ -16,6 +16,7 @@ parsedargs.add_argument('-t',   '--delay',    help = "If you are sending a reque
 parsedargs.add_argument('-o',   '--output',   help = "Enter the name file you wish to have the results saved in.")
 parsedargs.add_argument('-t1',  '--tag1',     help = "Enter the name of the html tag you are most interested in finding.")
 parsedargs.add_argument('-w',   '--wordlist', help = "Enter the name of the html tag you are most interested in finding.")
+parsedargs.add_argument('-s',   '--specfile', help = "Enter the name of the html tag you are most interested in finding.")
 
 #collect argument values and assign to their local variable
 args        = parsedargs.parse_args()
@@ -25,7 +26,7 @@ delay       = args.delay
 output      = args.output
 tag1        = args.tag1
 wlist       = args.wordlist
-
+sfile       = args.specfile
 #variables
 founddir    = "200s.txt"
 others      = "others.txt"
@@ -58,15 +59,10 @@ def filefinder(url):
             time.sleep(2)
         return ffiles
 
-#second request for dirs
-def getrequestd(newurl):
-    print("grand")
-    dirs = requests.get(newurl)
-    print(dirs.status_code)
 #create a function to send a request to a single URL
 def getrequest(url):
     #delete next line after testing
-    print(url, " made it to getrequest!")
+    print("Requesting: ", url)
     #send a request and save it in myrequest
     try:
         #create a file name removing any special characters
@@ -78,12 +74,13 @@ def getrequest(url):
         myrequest = requests.get(url, HEADERS1)
         #check the server response code
         if (myrequest.status_code == 200):
-            filefinder(url)
-            dir = filefinder(url)
-            d = open(founddir, "a")
-            d.write(dir)
-            d.write("\n")
-            d.close()
+            #if a wordlist is supplied run it
+            if wlist:
+                dir = filefinder(url)
+                d = open(founddir, "a")
+                d.write(dir)
+                d.write("\n")
+                d.close()
             f = open(resultsfile, "w")
             f.write(url)
             f.write(myrequest.text)
@@ -178,6 +175,7 @@ def validfile(file):
                 #if it isn't valid, let the user know which URL isn't valid
                 else:
                     print("Please check your file for URL: ", cleanurl, " as it appears to not be valid.")
+                time.sleep(2)
     except:
         print("File not found. Please check your path and file name. Exiting.")
         SystemExit(1)
